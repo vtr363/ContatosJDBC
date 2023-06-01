@@ -27,21 +27,27 @@ public class ContatoDao {
 		statement.execute();
 		statement.close();
 		connection.close();
-		System.out.println("Contato adcionado!");
-	}
-	
-	public void deleteContato(String nome) throws SQLException {
-		String sqlString = "DELETE FROM contatos WHERE nome=(?)";
-		PreparedStatement statement =  connection.prepareStatement(sqlString);
 		
-		statement.setString(1, nome);
-		statement.execute();
-		statement.close();
-		connection.close();
-		System.out.println("Contato deletado!");
 	}
 	
-	public List<Contato> getContatos() throws SQLException {
+	public boolean deleteContato(Long id) throws SQLException {
+		Contato contato = this.getContatoById(id);
+		if (contato != null) {
+			String sqlString = "DELETE FROM contatos WHERE id=(?)";
+			PreparedStatement statement =  connection.prepareStatement(sqlString);
+			
+			statement.setLong(1, id);
+			statement.execute();
+			statement.close();
+			connection.close();
+			return true;
+		}else {
+			return false;
+		}
+		
+	}
+	
+	public List<Contato> getAllContatos() throws SQLException {
 		String sqlString = "SELECT * FROM contatos";
 		PreparedStatement statement =  connection.prepareStatement(sqlString);
 		ResultSet resultSet = statement.executeQuery();
@@ -50,6 +56,7 @@ public class ContatoDao {
 		
 		while(resultSet.next()) {
 			Contato contato = new Contato();
+			contato.setId(resultSet.getLong("id"));
 			contato.setNome(resultSet.getString("nome"));
 			contato.setEmail(resultSet.getString("email"));
 			contato.setEndereco(resultSet.getString("endereco"));
@@ -62,7 +69,7 @@ public class ContatoDao {
 	
 	}
 	
-	public List<Contato> getContatosByFirstLetter(char letra) throws SQLException {
+	public List<Contato> getContatosByFirstLetter(String letra) throws SQLException {
         List<Contato> contatos = new ArrayList<>();
 
         String sqlString = "SELECT * FROM contatos WHERE nome LIKE ?";
@@ -72,6 +79,7 @@ public class ContatoDao {
 
         while (resultSet.next()) {
             Contato contato = new Contato();
+            contato.setId(resultSet.getLong("id"));
             contato.setNome(resultSet.getString("nome"));
             contato.setEmail(resultSet.getString("email"));
             contato.setEndereco(resultSet.getString("endereco"));
@@ -110,7 +118,7 @@ public class ContatoDao {
 	    return contato;
 	}
 	
-	public Contato updateContato(Contato contato) throws SQLException {
+	public boolean updateContato(Contato contato) throws SQLException {
 	    String sqlString = "UPDATE contatos SET nome = ?, endereco = ?, email = ? WHERE id = ?";
 	    PreparedStatement statement = null;
 	    
@@ -124,13 +132,11 @@ public class ContatoDao {
     
     	Contato contatoBanco = this.getContatoById(contato.getId());
         if (!contatoBanco.equals(contato)) {
-        	System.out.println("Contato inalterado!");
+        	return false;
             
-        }else {
-			System.out.println("Contato atualizado com sucesso!");
-		}
+        }
         statement.close();
         connection.close();
-	    return contatoBanco;
+	    return true;
 	}
 }
